@@ -1,0 +1,55 @@
+name: simple-terraform
+description: Shortcuts for generating pipeline steps using terraform in docker for a simple workflows.
+author: https://github.com/gantry-ml
+requirements: ["bash", "docker"]
+configuration:
+  properties:
+    path:
+      type: string
+    group:
+      type: string
+    queue:
+      type: string
+    docker-version:
+      type: string
+    terraform-version:
+      type: string
+    init:
+      type: boolean
+    validate:
+      type: boolean
+    plan:
+      type: boolean
+    apply:
+      type: boolean
+    destroy:
+      type: boolean
+    block:
+      type: string
+    wait:
+      type: boolean
+    validate_args:
+      type: string
+    plan_args:
+      type: string
+    init-args:
+      type: string
+    apply-args:
+      type: string
+    destroy-args:
+      type: string
+    propagate-aws-auth-tokens:
+      type: boolean
+    propagate-environment:
+      type: boolean
+    suppress-steps:
+      type: boolean
+    debug:
+      type: boolean
+    assume-role:
+      type: string
+    tag:
+      type: string
+  required:
+    - path
+  additionalProperties: true
