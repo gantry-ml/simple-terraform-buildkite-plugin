@@ -50,6 +50,8 @@ configuration:
       type: string
     tag:
       type: string
+    environment:
+      type: array
   required:
     - path
   additionalProperties: true
