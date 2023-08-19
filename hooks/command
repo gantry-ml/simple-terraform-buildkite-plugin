@@ -22,6 +22,7 @@ TAG="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TAG:-}"
 TAGDASH=$([ -n "$TAG" ] && echo "-${TAG}" || echo "")
 TAGBRACKET=$([ -n "$TAG" ] && echo "[$TAG]" || echo "")
 TF_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION:-latest}"
+DOCKER_IMAGE="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE:-hashicorp/terraform}"
 DOCKER_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_VERSION:-latest}"
 DOCKER_PLUGIN_VERSION=$([ "$DOCKER_VERSION" = "latest" ] && echo "" || echo "#v${DOCKER_VERSION}")
 TOP_INDENT=$([ "$SUPPRESS_STEPS" ] && echo "  " || echo "")
@@ -169,7 +170,7 @@ ${QUEUE_BLOCK:-}
 ${INDENT}  plugins:
 ${ASSUME_BLOCK:-}
 ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
-${INDENT}      image: "hashicorp/terraform:${TF_VERSION}"
+${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
 ${ENVIRONMENT_BLOCK:-}
