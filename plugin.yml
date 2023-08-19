@@ -14,6 +14,8 @@ configuration:
       type: string
     terraform-version:
       type: string
+    terraform-module:
+      type: string
     init:
       type: boolean
     validate:
@@ -54,4 +56,5 @@ configuration:
       type: array
   required:
     - path
+    - terraform-module
   additionalProperties: true
