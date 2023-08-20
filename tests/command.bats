@@ -14,7 +14,7 @@ setup() {
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_MODULE="repo/staging-infra"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_GROUP="Terraform"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_APPLY="true"
-  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_BLOCK="Confirm apply"
+  # export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_BLOCK="Confirm apply"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE="assumed-role"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_QUEUE="test-queue"
 }
@@ -23,25 +23,25 @@ teardown() {
   echo "$output" >&3
 }
 
-# @test "Generate pipeline" {
-#   stub buildkite-agent
-#   actual_output=$( "$PWD/hooks/command" )
-#   expected_output=$(cat tests/files/test1_expected.yaml)
-#   assert_equal "${actual_output}" "${expected_output}"
-# }
+@test "Generate pipeline" {
+  stub buildkite-agent
+  actual_output=$( "$PWD/hooks/command" )
+  expected_output=$(cat tests/files/test1_expected.yaml)
+  assert_equal "${actual_output}" "${expected_output}"
+}
 
 
-# @test "Docker blocks" {
-#   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_0="TF_VAR_repo_version"
-#   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_1="TF_VAR_some_api_key"
-#   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE="hashicorp/terraform"
-#   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION="1.3.9"
+@test "Docker blocks" {
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_0="TF_VAR_repo_version"
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_1="TF_VAR_some_api_key"
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE="hashicorp/terraform"
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION="1.3.9"
 
-#   stub buildkite-agent
-#   actual_output=$( "$PWD/hooks/command" )
-#   expected_output=$(cat tests/files/test_docker_expected.yaml)
-#   assert_equal "${actual_output}" "${expected_output}"
-# }
+  stub buildkite-agent
+  actual_output=$( "$PWD/hooks/command" )
+  expected_output=$(cat tests/files/test_docker_expected.yaml)
+  assert_equal "${actual_output}" "${expected_output}"
+}
 
 @test "artifacts with unique paths when run multiple modules in a build" {
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TAG="staging-infra"
@@ -51,4 +51,10 @@ teardown() {
   assert_equal "${actual_output}" "${expected_output}"
 }
 
-
+@test "no confirm block" {
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_BLOCK="true"
+  stub buildkite-agent
+  actual_output=$( "$PWD/hooks/command" )
+  expected_output=$(cat tests/files/test_no_confirm_block_expected.yaml)
+  assert_equal "${actual_output}" "${expected_output}"
+}

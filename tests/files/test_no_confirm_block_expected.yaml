@@ -1,6 +1,6 @@
   - group: "Terraform"
     steps:
-      - label: ":terraform: Init [staging-infra]"
+      - label: ":terraform: Init "
         agents:
           queue: test-queue
         plugins:
@@ -17,12 +17,12 @@
               - init
               - -input=false
         - artifacts:
-            compressed: terraform-staging-infra.tgz
+            compressed: terraform.tgz
             upload: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
 
       - wait
 
-      - label: ":terraform: Validate [staging-infra]"
+      - label: ":terraform: Validate "
         agents:
           queue: test-queue
         plugins:
@@ -38,12 +38,12 @@
               - -chdir=terraform
               - validate
         - artifacts:
-            compressed: terraform-staging-infra.tgz
+            compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
 
       - wait
 
-      - label: ":terraform: Plan [staging-infra]"
+      - label: ":terraform: Plan "
         concurrency: 1
         concurrency_group: "repo/staging-infra/plan"
         agents:
@@ -61,19 +61,20 @@
               - -chdir=terraform
               - plan
               - -input=false
-              - -out=plan-staging-infra.tfplan
+              - -out=plan.tfplan
         - artifacts:
-            compressed: terraform-staging-infra.tgz
+            compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
         artifact_paths:
-          - "terraform/plan-staging-infra.tfplan"
+          - "terraform/plan.tfplan"
 
       - wait
 
 
 
+      - block: "Confirm apply "
 
-      - label: ":terraform: Apply [staging-infra]"
+      - label: ":terraform: Apply "
         concurrency: 1
         concurrency_group: "repo/staging-infra/apply"
         agents:
@@ -92,10 +93,10 @@
               - apply
               - -auto-approve
               - -input=false
-              - plan-staging-infra.tfplan
+              - plan.tfplan
         - artifacts:
-            compressed: terraform-staging-infra.tgz
+            compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
         - artifacts:
-            download: "terraform/plan-staging-infra.tfplan"
+            download: "terraform/plan.tfplan"
 # Uploading pipeline...

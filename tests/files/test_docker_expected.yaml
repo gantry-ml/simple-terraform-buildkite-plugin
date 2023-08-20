@@ -74,7 +74,6 @@
 
 
 
-      - block: "Confirm apply "
 
       - label: ":terraform: Apply "
         concurrency: 1

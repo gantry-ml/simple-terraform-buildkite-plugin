@@ -30,7 +30,7 @@ INDENT=$([ "$GROUP" ] && echo "${TOP_INDENT}    " || echo "${TOP_INDENT}")
 PLAN_FILE="plan.tfplan"
 
 WAIT_STEP=$'\n'$([ "$WAIT" = "true" ] && echo $'\n'"${INDENT}- wait" || echo "")$'\n\n'
-BLOCK_STEP=$'\n'$([ -n "$BLOCK" ] && echo $'\n'"${INDENT}- block: \"${BLOCK} ${TAGBRACKET}\""$'\n' || echo "")$'\n\n'
+BLOCK_STEP=$'\n'$([ "$BLOCK" != "false" ] && echo $'\n'"${INDENT}- block: \"Confirm apply ${TAGBRACKET}"\" || echo "")$'\n\n'
 OUT="$([ "$SUPPRESS_STEPS" ] && echo "" || echo "steps:"$'\n'])"
 
 BK_UID="$(id -u)"

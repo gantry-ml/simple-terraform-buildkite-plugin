@@ -29,7 +29,7 @@ configuration:
     destroy:
       type: boolean
     block:
-      type: string
+      type: boolean
     wait:
       type: boolean
     validate_args:
