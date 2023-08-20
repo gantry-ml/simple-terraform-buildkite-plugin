@@ -137,7 +137,8 @@ get_environment_block() {
   if [[ ${#envs[@]} -gt 0 ]]; then
     echo "${INDENT}      environment:"
     for env_var in "${envs[@]}"; do
-      echo "${INDENT}        - ${env_var}"
+      env_value=$(printenv "$env_var")
+      echo "${INDENT}        - ${env_value}"
     done
   fi
 }

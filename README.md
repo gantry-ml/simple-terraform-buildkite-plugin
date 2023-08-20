@@ -2,6 +2,18 @@
 
 A Buildkite plugin for taking the monotony out of writing typical terraform workflow pipelines.
 
+## Tests
+```
+docker-compose run --rm tests
+```
+
+Instructions to add bats plugins:
+```
+git submodule add https://github.com/bats-core/bats-assert.git tests/test_helper/bats-assert/
+git submodule add https://github.com/bats-core/bats-support.git tests/test_helper/bats-support/
+git submodule add https://github.com/jasonkarns/bats-mock tests/test_helper/mocks
+```
+
 ## Example
 Add the following to your `pipeline.yml`:
 
