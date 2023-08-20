@@ -10,9 +10,13 @@ configuration:
       type: string
     queue:
       type: string
+    docker-image:
+      type: string
     docker-version:
       type: string
     terraform-version:
+      type: string
+    terraform-module:
       type: string
     init:
       type: boolean
@@ -54,4 +58,5 @@ configuration:
       type: array
   required:
     - path
+    - terraform-module
   additionalProperties: true

@@ -22,6 +22,7 @@ TAG="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TAG:-}"
 TAGDASH=$([ -n "$TAG" ] && echo "-${TAG}" || echo "")
 TAGBRACKET=$([ -n "$TAG" ] && echo "[$TAG]" || echo "")
 TF_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION:-latest}"
+DOCKER_IMAGE="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE:-hashicorp/terraform}"
 DOCKER_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_VERSION:-latest}"
 DOCKER_PLUGIN_VERSION=$([ "$DOCKER_VERSION" = "latest" ] && echo "" || echo "#v${DOCKER_VERSION}")
 TOP_INDENT=$([ "$SUPPRESS_STEPS" ] && echo "  " || echo "")
@@ -96,7 +97,7 @@ get_docker_command() {
         echo "${INDENT}        - ${TF_PLAN_ARGS}"
       fi
       echo "${INDENT}        - -input=false"
-      echo "${INDENT}        - -out=plan.tfplan"
+      echo "${INDENT}        - -out=plan"${TAGDASH}".tfplan"
       ;;
     apply)
       echo "${INDENT}        - apply"
@@ -105,7 +106,7 @@ get_docker_command() {
       fi
       echo "${INDENT}        - -auto-approve"
       echo "${INDENT}        - -input=false"
-      echo "${INDENT}        - plan.tfplan"
+      echo "${INDENT}        - plan"${TAGDASH}".tfplan"
       
       ;;
     destroy)
@@ -169,7 +170,7 @@ ${QUEUE_BLOCK:-}
 ${INDENT}  plugins:
 ${ASSUME_BLOCK:-}
 ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
-${INDENT}      image: "hashicorp/terraform:${TF_VERSION}"
+${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
 ${ENVIRONMENT_BLOCK:-}
@@ -177,6 +178,21 @@ ${COMMAND_BLOCK:-}
 ${ARTIFACT_BLOCK:-}
 EOF
 
+}
+
+get_concurrency_block() {
+  local command="${1}"
+  local terraform_module="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_MODULE}"
+
+  local concurrency=1
+  local concurrency_group="${terraform_module}/${command}"
+  local concurrency_block=$(cat <<EOF
+${INDENT}  concurrency: ${concurrency}
+${INDENT}  concurrency_group: "${concurrency_group}"
+EOF
+  )
+
+  echo "${concurrency_block}"
 }
 
 
@@ -204,6 +220,8 @@ if [ "$TF_PLAN" = "true" ]; then
   OUT+=$WAIT_STEP
   OUT+="${INDENT}- label: \":terraform: Plan ${TAGBRACKET}\""
   OUT+=$'\n'
+  OUT+=$(get_concurrency_block "plan")
+  OUT+=$'\n'
   OUT+=$(get_docker_block "plan")
 fi
 
@@ -214,6 +232,8 @@ if [ "$TF_APPLY" = "true" ]; then
   fi
   OUT+="${INDENT}- label: \":terraform: Apply ${TAGBRACKET}\""
   OUT+=$'\n'
+  OUT+=$(get_concurrency_block "apply")
+  OUT+=$'\n'
   OUT+=$(get_docker_block "apply")
 fi
 
@@ -223,6 +243,8 @@ if [ "$TF_DESTROY" = "true" ]; then
     OUT+=$BLOCK_STEP
   fi
   OUT+="${INDENT}- label: \":terraform: Destroy ${TAGBRACKET}\""
+  OUT+=$'\n'
+  OUT+=$(get_concurrency_block "apply")
   OUT+=$'\n'
   OUT+=$(get_docker_block "apply")
 fi
