@@ -11,6 +11,7 @@ setup() {
   load 'test_helper/mocks/stub'
 
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH="terraform"
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_MODULE="repo/staging-infra"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_GROUP="Terraform"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_APPLY="true"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_BLOCK="Confirm apply"
@@ -26,15 +27,16 @@ teardown() {
 
   stub buildkite-agent
 
-  run "$PWD/hooks/command"
+  actual_output=$( "$PWD/hooks/command" )
+  #echo "start output"
+  #echo "${actual_output}"
+  #echo "end output"
 
-  assert_success
+  expected_output=$(cat tests/files/test1_expected.yaml)
 
-  assert_output --partial "init"
-  assert_output --partial "plan"
-  assert_output --partial "apply"
+  assert_equal "${actual_output}" "${expected_output}"
+  #assert_equal "1" "0"
   
-
 }
 
 
