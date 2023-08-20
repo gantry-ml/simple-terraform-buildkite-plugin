@@ -1,0 +1,102 @@
+  - group: "Terraform"
+    steps:
+      - label: ":terraform: Init [staging-infra]"
+        agents:
+          queue: test-queue
+        plugins:
+        - gantry-ml/aws-assume-role-in-current-account:
+            role: "assumed-role"
+            duration: "1800"
+        - docker:
+            image: "hashicorp/terraform:latest"
+            propagate-environment: true
+            propagate-aws-auth-tokens: true
+
+            command:
+              - -chdir=terraform
+              - init
+              - -input=false
+        - artifacts:
+            compressed: terraform-staging-infra.tgz
+            upload: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
+
+      - wait
+
+      - label: ":terraform: Validate [staging-infra]"
+        agents:
+          queue: test-queue
+        plugins:
+        - gantry-ml/aws-assume-role-in-current-account:
+            role: "assumed-role"
+            duration: "1800"
+        - docker:
+            image: "hashicorp/terraform:latest"
+            propagate-environment: true
+            propagate-aws-auth-tokens: true
+
+            command:
+              - -chdir=terraform
+              - validate
+        - artifacts:
+            compressed: terraform-staging-infra.tgz
+            download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
+
+      - wait
+
+      - label: ":terraform: Plan [staging-infra]"
+        concurrency: 1
+        concurrency_group: "repo/staging-infra/plan"
+        agents:
+          queue: test-queue
+        plugins:
+        - gantry-ml/aws-assume-role-in-current-account:
+            role: "assumed-role"
+            duration: "1800"
+        - docker:
+            image: "hashicorp/terraform:latest"
+            propagate-environment: true
+            propagate-aws-auth-tokens: true
+
+            command:
+              - -chdir=terraform
+              - plan
+              - -input=false
+              - -out=plan-staging-infra.tfplan
+        - artifacts:
+            compressed: terraform-staging-infra.tgz
+            download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
+        artifact_paths:
+          - "terraform/plan-staging-infra.tfplan"
+
+      - wait
+
+
+
+      - block: "Confirm apply [staging-infra]"
+
+      - label: ":terraform: Apply [staging-infra]"
+        concurrency: 1
+        concurrency_group: "repo/staging-infra/apply"
+        agents:
+          queue: test-queue
+        plugins:
+        - gantry-ml/aws-assume-role-in-current-account:
+            role: "assumed-role"
+            duration: "1800"
+        - docker:
+            image: "hashicorp/terraform:latest"
+            propagate-environment: true
+            propagate-aws-auth-tokens: true
+
+            command:
+              - -chdir=terraform
+              - apply
+              - -auto-approve
+              - -input=false
+              - plan-staging-infra.tfplan
+        - artifacts:
+            compressed: terraform-staging-infra.tgz
+            download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
+        - artifacts:
+            download: "terraform/plan-staging-infra.tfplan"
+# Uploading pipeline...
