@@ -42,6 +42,9 @@ BK_UID="$(id -u)"
 get_artifact_block() {
   local command="${1}"
   local path="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH:-}"
+  if [[ "${path}" == */ ]]; then
+    path="${path%/}"
+  fi
   case $command in 
     init)
       echo "${INDENT}  - artifacts:"
