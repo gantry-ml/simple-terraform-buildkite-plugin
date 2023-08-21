@@ -39,7 +39,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#3c11c0d:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -59,7 +59,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#3c11c0d:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -79,7 +79,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#3c11c0d:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -105,7 +105,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#3c11c0d:
           role: "assumed-role"
           duration: "1800"
       - docker:
