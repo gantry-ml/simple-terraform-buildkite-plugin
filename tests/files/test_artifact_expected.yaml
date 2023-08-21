@@ -12,10 +12,12 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - init
               - -input=false
+
         - artifacts:
             compressed: terraform-staging-infra.tgz
             upload: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -34,9 +36,11 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - validate
+
         - artifacts:
             compressed: terraform-staging-infra.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -57,11 +61,13 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - plan
               - -input=false
               - -out=plan-staging-infra.tfplan
+
         - artifacts:
             compressed: terraform-staging-infra.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -87,12 +93,14 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - apply
               - -auto-approve
               - -input=false
               - plan-staging-infra.tfplan
+
         - artifacts:
             compressed: terraform-staging-infra.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
