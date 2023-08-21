@@ -16,7 +16,7 @@ configuration:
       type: string
     terraform-version:
       type: string
-    terraform-entry-required:
+    terraform-entrypoint-required:
       type: boolean
     terraform-module:
       type: string
