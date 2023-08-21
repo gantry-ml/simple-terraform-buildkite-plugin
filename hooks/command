@@ -146,10 +146,49 @@ get_environment_block() {
   fi
 }
 
+get_volumes_block() {
+  local command="${1}"
+  if [[ "${command}" == "init" || "${command}" == "validate" ]]; then
+    return
+  fi
+
+  local volumes=()
+
+  while IFS='=' read -r name _ ; do
+    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_VOLUMES_[0-9]+) ]] ; then
+      volumes+=("${name}")
+    fi
+  done < <(env | sort)
+
+  if [[ ${#volumes[@]} -gt 0 ]]; then
+    echo "${INDENT}      volumes:"
+    for vol_var in "${volumes[@]}"; do
+      vol_value=$(printenv "$vol_var")
+      echo "${INDENT}        - ${vol_value}"
+    done
+  fi
+}
+
+get_user_block() {
+  local command="${1}"
+  if [[ "${command}" == "init" || "${command}" == "validate" ]]; then
+    return
+  fi
+
+  local user="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_USER}"
+
+  if [ ! -z "${user}" ]; then
+    echo "${INDENT}      user: \""${user}"\""
+  fi
+}
+
+
 get_docker_block() {
   local COMMAND_BLOCK=$(get_docker_command "$1")
+  local USER_BLOCK=$(get_user_block "$1")
   local ARTIFACT_BLOCK=$(get_artifact_block "$1")
   local ENVIRONMENT_BLOCK=$(get_environment_block "$1")
+  local VOLUMES_BLOCK=$(get_volumes_block "$1")
 
   if [ -n "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}" ]; then
     local ASSUME_BLOCK=$(cat <<EOF
@@ -177,8 +216,10 @@ ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
 ${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
+${USER_BLOCK:-}
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
+${VOLUMES_BLOCK:-}
 ${ARTIFACT_BLOCK:-}
 EOF
 

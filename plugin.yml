@@ -56,6 +56,12 @@ configuration:
       type: string
     environment:
       type: array
+    volumes:
+      type: array
+    volumes:
+      type: array
+    user:
+      type: string
   required:
     - path
     - terraform-module

@@ -12,10 +12,12 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - init
               - -input=false
+
         - artifacts:
             compressed: terraform.tgz
             upload: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -34,9 +36,11 @@
             propagate-environment: true
             propagate-aws-auth-tokens: true
 
+
             command:
               - -chdir=terraform
               - validate
+
         - artifacts:
             compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -56,6 +60,7 @@
             image: "hashicorp/terraform:1.3.9"
             propagate-environment: true
             propagate-aws-auth-tokens: true
+            user: "100:500"
             environment:
               - TF_VAR_repo_version
               - TF_VAR_some_api_key
@@ -64,6 +69,8 @@
               - plan
               - -input=false
               - -out=plan.tfplan
+            volumes:
+              - .:/workspace
         - artifacts:
             compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
@@ -88,6 +95,7 @@
             image: "hashicorp/terraform:1.3.9"
             propagate-environment: true
             propagate-aws-auth-tokens: true
+            user: "100:500"
             environment:
               - TF_VAR_repo_version
               - TF_VAR_some_api_key
@@ -97,6 +105,8 @@
               - -auto-approve
               - -input=false
               - plan.tfplan
+            volumes:
+              - .:/workspace
         - artifacts:
             compressed: terraform.tgz
             download: [ "terraform/.terraform", "terraform/.terraform.lock.hcl" ]
