@@ -168,20 +168,8 @@ get_volumes_block() {
   fi
 }
 
-get_user_block() {
-  local command="${1}"
-
-  local user="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_USER:-}"
-
-  if [ ! -z "${user}" ]; then
-    echo "${INDENT}      user: \""${user}"\""
-  fi
-}
-
-
 get_docker_block() {
   local COMMAND_BLOCK=$(get_docker_command "$1")
-  local USER_BLOCK=$(get_user_block "$1")
   local ARTIFACT_BLOCK=$(get_artifact_block "$1")
   local ENVIRONMENT_BLOCK=$(get_environment_block "$1")
   local VOLUMES_BLOCK=$(get_volumes_block "$1")
@@ -213,7 +201,6 @@ ${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
 ${INDENT}      propagate-uid-gid: ${PROPAGATE_UID_GID}
-${USER_BLOCK:-}
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
 ${VOLUMES_BLOCK:-}

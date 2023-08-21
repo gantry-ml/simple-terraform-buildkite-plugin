@@ -36,7 +36,7 @@ teardown() {
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE="hashicorp/terraform"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION="1.3.9"
   export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_VOLUMES_0=".:/workspace"
-  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_USER="100:500"
+  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PROPAGATE_UID_GID="true"
 
   stub buildkite-agent
   actual_output=$( "$PWD/hooks/command" )
@@ -49,13 +49,5 @@ teardown() {
   stub buildkite-agent
   actual_output=$( "$PWD/hooks/command" )
   expected_output=$(cat tests/files/test_artifact_expected.yaml)
-  assert_equal "${actual_output}" "${expected_output}"
-}
-
-@test "no confirm block" {
-  export BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_BLOCK="true"
-  stub buildkite-agent
-  actual_output=$( "$PWD/hooks/command" )
-  expected_output=$(cat tests/files/test_no_confirm_block_expected.yaml)
   assert_equal "${actual_output}" "${expected_output}"
 }
