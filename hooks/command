@@ -95,6 +95,7 @@ get_docker_command() {
       
       ;;
     plan)
+      echo "${INDENT}        - terraform"
       echo "${INDENT}        - plan"
       if [ -n "${TF_PLAN_ARGS}" ]; then
         echo "${INDENT}        - ${TF_PLAN_ARGS}"
