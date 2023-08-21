@@ -129,9 +129,9 @@ get_docker_command() {
 
 get_environment_block() {
   local command="${1}"
-  if [[ "${command}" == "init" || "${command}" == "validate" ]]; then
-    return
-  fi
+  # if [[ "${command}" == "init" || "${command}" == "validate" ]]; then
+  #   return
+  # fi
 
   local envs=()
 
