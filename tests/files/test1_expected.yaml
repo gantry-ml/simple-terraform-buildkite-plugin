@@ -11,7 +11,7 @@
             image: "hashicorp/terraform:latest"
             propagate-environment: true
             propagate-aws-auth-tokens: true
-
+            propagate-uid-gid: false
 
             command:
               - -chdir=terraform
@@ -35,7 +35,7 @@
             image: "hashicorp/terraform:latest"
             propagate-environment: true
             propagate-aws-auth-tokens: true
-
+            propagate-uid-gid: false
 
             command:
               - -chdir=terraform
@@ -60,7 +60,7 @@
             image: "hashicorp/terraform:latest"
             propagate-environment: true
             propagate-aws-auth-tokens: true
-
+            propagate-uid-gid: false
 
             command:
               - -chdir=terraform
@@ -92,7 +92,7 @@
             image: "hashicorp/terraform:latest"
             propagate-environment: true
             propagate-aws-auth-tokens: true
-
+            propagate-uid-gid: false
 
             command:
               - -chdir=terraform
