@@ -16,6 +16,8 @@ configuration:
       type: string
     terraform-version:
       type: string
+    terraform-entrypoint-required:
+      type: boolean
     terraform-module:
       type: string
     init:
@@ -29,7 +31,7 @@ configuration:
     destroy:
       type: boolean
     block:
-      type: string
+      type: boolean
     wait:
       type: boolean
     validate_args:
@@ -56,6 +58,12 @@ configuration:
       type: string
     environment:
       type: array
+    volumes:
+      type: array
+    volumes:
+      type: array
+    user:
+      type: string
   required:
     - path
     - terraform-module

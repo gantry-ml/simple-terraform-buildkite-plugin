@@ -23,6 +23,7 @@ TAGDASH=$([ -n "$TAG" ] && echo "-${TAG}" || echo "")
 TAGBRACKET=$([ -n "$TAG" ] && echo "[$TAG]" || echo "")
 TF_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_VERSION:-latest}"
 DOCKER_IMAGE="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_IMAGE:-hashicorp/terraform}"
+TF_ENTRYPOINT_REQUIRED="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_ENTRYPOINT_REQUIRED:-false}"
 DOCKER_VERSION="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_DOCKER_VERSION:-latest}"
 DOCKER_PLUGIN_VERSION=$([ "$DOCKER_VERSION" = "latest" ] && echo "" || echo "#v${DOCKER_VERSION}")
 TOP_INDENT=$([ "$SUPPRESS_STEPS" ] && echo "  " || echo "")
@@ -30,7 +31,7 @@ INDENT=$([ "$GROUP" ] && echo "${TOP_INDENT}    " || echo "${TOP_INDENT}")
 PLAN_FILE="plan.tfplan"
 
 WAIT_STEP=$'\n'$([ "$WAIT" = "true" ] && echo $'\n'"${INDENT}- wait" || echo "")$'\n\n'
-BLOCK_STEP=$'\n'$([ -n "$BLOCK" ] && echo $'\n'"${INDENT}- block: \"${BLOCK} ${TAGBRACKET}\""$'\n' || echo "")$'\n\n'
+BLOCK_STEP=$'\n'$([ "$BLOCK" != "false" ] && echo $'\n'"${INDENT}- block: \"Confirm apply ${TAGBRACKET}"\" || echo "")$'\n\n'
 OUT="$([ "$SUPPRESS_STEPS" ] && echo "" || echo "steps:"$'\n'])"
 
 BK_UID="$(id -u)"
@@ -39,6 +40,9 @@ BK_UID="$(id -u)"
 get_artifact_block() {
   local command="${1}"
   local path="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH:-}"
+  if [[ "${path}" == */ ]]; then
+    path="${path%/}"
+  fi
   case $command in 
     init)
       echo "${INDENT}  - artifacts:"
@@ -73,6 +77,9 @@ get_docker_command() {
   local path="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH:-}"
   
   echo "${INDENT}      command:"
+  if [[ "${TF_ENTRYPOINT_REQUIRED}" == "true" ]]; then
+    echo "${INDENT}        - terraform"
+  fi
   if [ -n "$path" ]; then
     echo "${INDENT}        - -chdir=${path}"
   fi
@@ -122,9 +129,6 @@ get_docker_command() {
 
 get_environment_block() {
   local command="${1}"
-  if [[ "${command}" == "init" || "${command}" == "validate" ]]; then
-    return
-  fi
 
   local envs=()
 
@@ -137,19 +141,53 @@ get_environment_block() {
   if [[ ${#envs[@]} -gt 0 ]]; then
     echo "${INDENT}      environment:"
     for env_var in "${envs[@]}"; do
-      echo "${INDENT}        - ${env_var}"
+      env_value=$(printenv "$env_var")
+      echo "${INDENT}        - ${env_value}"
     done
   fi
 }
 
+get_volumes_block() {
+  local command="${1}"
+
+  local volumes=()
+
+  while IFS='=' read -r name _ ; do
+    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_VOLUMES_[0-9]+) ]] ; then
+      volumes+=("${name}")
+    fi
+  done < <(env | sort)
+
+  if [[ ${#volumes[@]} -gt 0 ]]; then
+    echo "${INDENT}      volumes:"
+    for vol_var in "${volumes[@]}"; do
+      vol_value=$(printenv "$vol_var")
+      echo "${INDENT}        - ${vol_value}"
+    done
+  fi
+}
+
+get_user_block() {
+  local command="${1}"
+
+  local user="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_USER:-}"
+
+  if [ ! -z "${user}" ]; then
+    echo "${INDENT}      user: \""${user}"\""
+  fi
+}
+
+
 get_docker_block() {
   local COMMAND_BLOCK=$(get_docker_command "$1")
+  local USER_BLOCK=$(get_user_block "$1")
   local ARTIFACT_BLOCK=$(get_artifact_block "$1")
   local ENVIRONMENT_BLOCK=$(get_environment_block "$1")
+  local VOLUMES_BLOCK=$(get_volumes_block "$1")
 
   if [ -n "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}" ]; then
     local ASSUME_BLOCK=$(cat <<EOF
-${INDENT}  - gantry-ml/aws-assume-role-in-current-account:
+${INDENT}  - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
 ${INDENT}      role: "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}"
 ${INDENT}      duration: "1800"
 EOF
@@ -173,8 +211,10 @@ ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
 ${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
+${USER_BLOCK:-}
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
+${VOLUMES_BLOCK:-}
 ${ARTIFACT_BLOCK:-}
 EOF
 

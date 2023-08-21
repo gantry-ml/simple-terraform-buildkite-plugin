@@ -2,6 +2,18 @@
 
 A Buildkite plugin for taking the monotony out of writing typical terraform workflow pipelines.
 
+## Tests
+```
+docker-compose run --rm tests
+```
+
+Instructions to add bats plugins:
+```
+git submodule add https://github.com/bats-core/bats-assert.git tests/test_helper/bats-assert/
+git submodule add https://github.com/bats-core/bats-support.git tests/test_helper/bats-support/
+git submodule add https://github.com/jasonkarns/bats-mock tests/test_helper/mocks
+```
+
 ## Example
 Add the following to your `pipeline.yml`:
 
@@ -27,7 +39,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -47,7 +59,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -67,7 +79,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
           role: "assumed-role"
           duration: "1800"
       - docker:
@@ -93,7 +105,7 @@ This will yield a pipeline approximately like:
       agents:
         queue: test-queue
       plugins:
-      - gantry-ml/aws-assume-role-in-current-account:
+      - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
           role: "assumed-role"
           duration: "1800"
       - docker:
