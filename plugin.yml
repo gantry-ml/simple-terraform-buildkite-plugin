@@ -48,6 +48,8 @@ configuration:
       type: boolean
     propagate-environment:
       type: boolean
+    propagate-uid-gid:
+      type: boolean
     suppress-steps:
       type: boolean
     debug:
