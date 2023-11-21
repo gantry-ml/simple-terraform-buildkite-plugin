@@ -37,46 +37,44 @@ OUT="$([ "$SUPPRESS_STEPS" ] && echo "" || echo "steps:"$'\n'])"
 
 BK_UID="$(id -u)"
 
-
 get_artifact_block() {
   local command="${1}"
   local path="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH:-}"
   if [[ "${path}" == */ ]]; then
     path="${path%/}"
   fi
-  case $command in 
-    init)
-      echo "${INDENT}  - artifacts:"
-      echo "${INDENT}      compressed: terraform${TAGDASH}.tgz"
-      echo "${INDENT}      upload: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
-      ;;
-    validate)
-      echo "${INDENT}  - artifacts:"
-      echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
-      echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
-      ;;
-    plan)
-      echo "${INDENT}  - artifacts:"
-      echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
-      echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
-      echo "${INDENT}  artifact_paths:"
-      echo "${INDENT}    - \"${path}/plan"${TAGDASH}".tfplan\""
-      ;;
-    apply)
-      echo "${INDENT}  - artifacts:"
-      echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
-      echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
-      echo "${INDENT}  - artifacts:"
-      echo "${INDENT}      download: \"${path}/plan"${TAGDASH}".tfplan\""
-      ;;
-    esac
+  case $command in
+  init)
+    echo "${INDENT}  - artifacts:"
+    echo "${INDENT}      compressed: terraform${TAGDASH}.tgz"
+    echo "${INDENT}      upload: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
+    ;;
+  validate)
+    echo "${INDENT}  - artifacts:"
+    echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
+    echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
+    ;;
+  plan)
+    echo "${INDENT}  - artifacts:"
+    echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
+    echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
+    echo "${INDENT}  artifact_paths:"
+    echo "${INDENT}    - \"${path}/plan"${TAGDASH}".tfplan\""
+    ;;
+  apply)
+    echo "${INDENT}  - artifacts:"
+    echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
+    echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
+    echo "${INDENT}  - artifacts:"
+    echo "${INDENT}      download: \"${path}/plan"${TAGDASH}".tfplan\""
+    ;;
+  esac
 }
-
 
 get_docker_command() {
   local command="${1}"
   local path="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PATH:-}"
-  
+
   echo "${INDENT}      command:"
   if [[ "${TF_ENTRYPOINT_REQUIRED}" == "true" ]]; then
     echo "${INDENT}        - terraform"
@@ -84,47 +82,47 @@ get_docker_command() {
   if [ -n "$path" ]; then
     echo "${INDENT}        - -chdir=${path}"
   fi
-  case $command in 
-    init)
-      echo "${INDENT}        - init"
-      if [ -n "${TF_INIT_ARGS}" ]; then
-        echo "${INDENT}        - ${TF_INIT_ARGS}"
-      fi
-      echo "${INDENT}        - -input=false"
-      ;;
-    validate)
-      echo "${INDENT}        - validate"
-      if [ -n "${TF_VALIDATE_ARGS}" ]; then
-        echo "${INDENT}        - ${TF_VALIDATE_ARGS}"
-      fi
-      
-      ;;
-    plan)
-      echo "${INDENT}        - plan"
-      if [ -n "${TF_PLAN_ARGS}" ]; then
-        echo "${INDENT}        - ${TF_PLAN_ARGS}"
-      fi
-      echo "${INDENT}        - -input=false"
-      echo "${INDENT}        - -out=plan"${TAGDASH}".tfplan"
-      ;;
-    apply)
-      echo "${INDENT}        - apply"
-      if [ -n "${TF_APPLY_ARGS}" ]; then
-        echo "${INDENT}        - ${TF_APPLY_ARGS}"
-      fi
-      echo "${INDENT}        - -auto-approve"
-      echo "${INDENT}        - -input=false"
-      echo "${INDENT}        - plan"${TAGDASH}".tfplan"
-      
-      ;;
-    destroy)
-      echo "${INDENT}        - destroy"
-      if [ -n "${TF_DESTROY_ARGS}" ]; then
-        echo "${INDENT}        - ${TF_DESTROY_ARGS}"
-      fi
-      echo "${INDENT}        - -auto-approve"
-      echo "${INDENT}        - -input=false"
-      ;;
+  case $command in
+  init)
+    echo "${INDENT}        - init"
+    if [ -n "${TF_INIT_ARGS}" ]; then
+      echo "${INDENT}        - ${TF_INIT_ARGS}"
+    fi
+    echo "${INDENT}        - -input=false"
+    ;;
+  validate)
+    echo "${INDENT}        - validate"
+    if [ -n "${TF_VALIDATE_ARGS}" ]; then
+      echo "${INDENT}        - ${TF_VALIDATE_ARGS}"
+    fi
+
+    ;;
+  plan)
+    echo "${INDENT}        - plan"
+    if [ -n "${TF_PLAN_ARGS}" ]; then
+      echo "${INDENT}        - ${TF_PLAN_ARGS}"
+    fi
+    echo "${INDENT}        - -input=false"
+    echo "${INDENT}        - -out=plan"${TAGDASH}".tfplan"
+    ;;
+  apply)
+    echo "${INDENT}        - apply"
+    if [ -n "${TF_APPLY_ARGS}" ]; then
+      echo "${INDENT}        - ${TF_APPLY_ARGS}"
+    fi
+    echo "${INDENT}        - -auto-approve"
+    echo "${INDENT}        - -input=false"
+    echo "${INDENT}        - plan"${TAGDASH}".tfplan"
+
+    ;;
+  destroy)
+    echo "${INDENT}        - destroy"
+    if [ -n "${TF_DESTROY_ARGS}" ]; then
+      echo "${INDENT}        - ${TF_DESTROY_ARGS}"
+    fi
+    echo "${INDENT}        - -auto-approve"
+    echo "${INDENT}        - -input=false"
+    ;;
   esac
 }
 
@@ -133,8 +131,8 @@ get_environment_block() {
 
   local envs=()
 
-  while IFS='=' read -r name _ ; do
-    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_[0-9]+) ]] ; then
+  while IFS='=' read -r name _; do
+    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ENVIRONMENT_[0-9]+) ]]; then
       envs+=("${name}")
     fi
   done < <(env | sort)
@@ -153,8 +151,8 @@ get_volumes_block() {
 
   local volumes=()
 
-  while IFS='=' read -r name _ ; do
-    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_VOLUMES_[0-9]+) ]] ; then
+  while IFS='=' read -r name _; do
+    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_VOLUMES_[0-9]+) ]]; then
       volumes+=("${name}")
     fi
   done < <(env | sort)
@@ -175,7 +173,8 @@ get_docker_block() {
   local VOLUMES_BLOCK=$(get_volumes_block "$1")
 
   if [ -n "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}" ]; then
-    local ASSUME_BLOCK=$(cat <<EOF
+    local ASSUME_BLOCK=$(
+      cat <<EOF
 ${INDENT}  - gantry-ml/aws-assume-role-in-current-account#v0.0.3:
 ${INDENT}      role: "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}"
 ${INDENT}      duration: "1800"
@@ -185,14 +184,15 @@ EOF
   fi
 
   if [ -n "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_QUEUE:-}" ]; then
-    local QUEUE_BLOCK=$(cat <<EOF
+    local QUEUE_BLOCK=$(
+      cat <<EOF
 ${INDENT}  agents:
 ${INDENT}    queue: ${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_QUEUE}
 EOF
     )
   fi
 
-cat <<EOF
+  cat <<EOF
 ${QUEUE_BLOCK:-}
 ${INDENT}  plugins:
 ${ASSUME_BLOCK:-}
@@ -214,8 +214,9 @@ get_concurrency_block() {
   local terraform_module="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_MODULE}"
 
   local concurrency=1
-  local concurrency_group="${terraform_module}/${command}"
-  local concurrency_block=$(cat <<EOF
+  local concurrency_group="${terraform_module}"
+  local concurrency_block=$(
+    cat <<EOF
 ${INDENT}  concurrency: ${concurrency}
 ${INDENT}  concurrency_group: "${concurrency_group}"
 EOF
@@ -223,7 +224,6 @@ EOF
 
   echo "${concurrency_block}"
 }
-
 
 if [ -n "$GROUP" ]; then
   OUT+='  - group: "'${GROUP}$'"\n'
@@ -278,7 +278,7 @@ if [ "$TF_DESTROY" = "true" ]; then
   OUT+=$(get_docker_block "apply")
 fi
 
-echo "$OUT" 
+echo "$OUT"
 
 if [ "$PLUGIN_DEBUG" != "true" ]; then
   echo "# Uploading pipeline..."
