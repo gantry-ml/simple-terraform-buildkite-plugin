@@ -57,7 +57,7 @@ get_artifact_block() {
   plan)
     echo "${INDENT}  - artifacts:"
     echo "${INDENT}      compressed: terraform"${TAGDASH}".tgz"
-    echo "${INDENT}      download: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
+    echo "${INDENT}      upload: [ \"${path}/.terraform\", \"${path}/.terraform.lock.hcl\" ]"
     echo "${INDENT}  artifact_paths:"
     echo "${INDENT}    - \"${path}/plan"${TAGDASH}".tfplan\""
     ;;
@@ -167,11 +167,6 @@ get_volumes_block() {
 }
 
 get_docker_block() {
-  local COMMAND_BLOCK=$(get_docker_command "$1")
-  local ARTIFACT_BLOCK=$(get_artifact_block "$1")
-  local ENVIRONMENT_BLOCK=$(get_environment_block "$1")
-  local VOLUMES_BLOCK=$(get_volumes_block "$1")
-
   if [ -n "${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_ASSUME_ROLE:-}" ]; then
     local ASSUME_BLOCK=$(
       cat <<EOF
@@ -192,10 +187,18 @@ EOF
     )
   fi
 
-  cat <<EOF
-${QUEUE_BLOCK:-}
-${INDENT}  plugins:
-${ASSUME_BLOCK:-}
+  local COMMAND_BLOCKS=""
+  local COMMAND_BLOCK=""
+  local ENVIRONMENT_BLOCK=""
+  local VOLUMES_BLOCK=""
+
+  for cmd in "$@"; do
+    COMMAND_BLOCK=$(get_docker_command "$cmd")
+    ENVIRONMENT_BLOCK=$(get_environment_block "$cmd")
+    VOLUMES_BLOCK=$(get_volumes_block "$cmd")
+    COMMAND_BLOCKS+=$(
+      cat <<EOF
+
 ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
 ${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
@@ -204,13 +207,23 @@ ${INDENT}      propagate-uid-gid: ${PROPAGATE_UID_GID}
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
 ${VOLUMES_BLOCK:-}
+EOF
+    )
+  done
+
+  local ARTIFACT_BLOCK=$(get_artifact_block "${!#}")
+
+  cat <<EOF
+${QUEUE_BLOCK:-}
+${INDENT}  plugins:
+${ASSUME_BLOCK:-}
+${COMMAND_BLOCKS:-}
 ${ARTIFACT_BLOCK:-}
 EOF
 
 }
 
 get_concurrency_block() {
-  local command="${1}"
   local terraform_module="${BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_TERRAFORM_MODULE}"
 
   local concurrency=1
@@ -232,26 +245,25 @@ if [ -n "$GROUP" ]; then
   fi
 fi
 
-if [ "$TF_INIT" = "true" ]; then
-  OUT+="${INDENT}- label: \":terraform: Init ${TAGBRACKET}\""
-  OUT+=$'\n'
-  OUT+=$(get_docker_block "init")
-fi
-
-if [ "$TF_VALIDATE" = "true" ]; then
-  OUT+=$WAIT_STEP
-  OUT+="${INDENT}- label: \":terraform: Validate ${TAGBRACKET}\""
-  OUT+=$'\n'
-  OUT+=$(get_docker_block "validate")
-fi
-
-if [ "$TF_PLAN" = "true" ]; then
-  OUT+=$WAIT_STEP
+if [ "$TF_PLAN" = true ]; then
   OUT+="${INDENT}- label: \":terraform: Plan ${TAGBRACKET}\""
   OUT+=$'\n'
   OUT+=$(get_concurrency_block "plan")
   OUT+=$'\n'
-  OUT+=$(get_docker_block "plan")
+  OUT+=$(get_docker_block "init" "validate" "plan")
+else
+  if [ "$TF_INIT" = "true" ]; then
+    OUT+="${INDENT}- label: \":terraform: Init ${TAGBRACKET}\""
+    OUT+=$'\n'
+    OUT+=$(get_docker_block "init")
+  fi
+
+  if [ "$TF_VALIDATE" = "true" ]; then
+    OUT+=$WAIT_STEP
+    OUT+="${INDENT}- label: \":terraform: Validate ${TAGBRACKET}\""
+    OUT+=$'\n'
+    OUT+=$(get_docker_block "validate")
+  fi
 fi
 
 if [ "$TF_APPLY" = "true" ]; then
