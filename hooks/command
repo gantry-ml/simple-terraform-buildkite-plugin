@@ -203,7 +203,19 @@ ${INDENT}  - docker${DOCKER_PLUGIN_VERSION}:
 ${INDENT}      image: "${DOCKER_IMAGE}:${TF_VERSION}"
 ${INDENT}      propagate-environment: ${PROPAGATE_ENVIRONMENT}
 ${INDENT}      propagate-aws-auth-tokens: ${PROPAGATE_AWS_AUTH_TOKENS}
+EOF
+    )
+    if [[ ${PROPAGATE_UID_GID} =~ ^(true|on|1)$ ]] ; then
+      COMMAND_BLOCKS+=$(
+        cat <<EOF
+
 ${INDENT}      propagate-uid-gid: ${PROPAGATE_UID_GID}
+EOF
+    )
+    fi
+    COMMAND_BLOCKS+=$(
+      cat <<EOF
+      
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
 ${VOLUMES_BLOCK:-}
