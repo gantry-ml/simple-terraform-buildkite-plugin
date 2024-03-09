@@ -50,8 +50,6 @@ configuration:
       type: boolean
     propagate-uid-gid:
       type: boolean
-    mount-ssh-agent:
-      type: boolean
     suppress-steps:
       type: boolean
     debug:
