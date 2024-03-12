@@ -62,7 +62,7 @@ configuration:
       type: array
     volumes:
       type: array
-    volumes:
+    pkgs:
       type: array
   required:
     - path
