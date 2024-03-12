@@ -144,8 +144,7 @@ terraform "\$@"
 EOF
     chmod +x /tmp/entrypoint.sh
 
-    echo "${INDENT}      entrypoint:"
-    echo "${INDENT}        - /entrypoint.sh"
+    echo "${INDENT}      entrypoint: /entrypoint.sh"
   fi
 }
 
