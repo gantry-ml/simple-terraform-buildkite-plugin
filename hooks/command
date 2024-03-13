@@ -126,6 +126,28 @@ get_docker_command() {
   esac
 }
 
+get_docker_entrypoint() {
+  local pkgs=()
+
+  while IFS='=' read -r name _; do
+    if [[ $name =~ ^(BUILDKITE_PLUGIN_SIMPLE_TERRAFORM_PKGS_[0-9]+) ]]; then
+      pkgs+=($(printenv "$name"))
+    fi
+  done < <(env | sort)
+
+  if [[ ${#pkgs[@]} -gt 0 ]]; then
+    cat <<EOF >/tmp/entrypoint.sh
+#!/bin/sh
+apk add --no-cache ${pkgs[@]}
+
+terraform "\$@"
+EOF
+    chmod +x /tmp/entrypoint.sh
+
+    echo "${INDENT}      entrypoint: /entrypoint.sh"
+  fi
+}
+
 get_environment_block() {
   local command="${1}"
 
@@ -147,7 +169,7 @@ get_environment_block() {
 }
 
 get_volumes_block() {
-  local command="${1}"
+  local has_entrypoint="${1}"
 
   local volumes=()
 
@@ -157,12 +179,20 @@ get_volumes_block() {
     fi
   done < <(env | sort)
 
-  if [[ ${#volumes[@]} -gt 0 ]]; then
+  if [[ ${#volumes[@]} -gt 0 || -n ${has_entrypoint} ]]; then
     echo "${INDENT}      volumes:"
-    for vol_var in "${volumes[@]}"; do
-      vol_value=$(printenv "$vol_var")
-      echo "${INDENT}        - ${vol_value}"
-    done
+
+    if [[ ${#volumes[@]} -gt 0 ]]; then
+      for vol_var in "${volumes[@]}"; do
+        vol_value=$(printenv "$vol_var")
+        echo "${INDENT}        - ${vol_value}"
+      done
+    fi
+
+    if [[ -n ${has_entrypoint} ]]; then
+      echo "${INDENT}        - /tmp/entrypoint.sh:/entrypoint.sh"
+    fi
+
   fi
 }
 
@@ -188,14 +218,16 @@ EOF
   fi
 
   local COMMAND_BLOCKS=""
+  local ENTRYPOINT_BLOCK=""
   local COMMAND_BLOCK=""
   local ENVIRONMENT_BLOCK=""
   local VOLUMES_BLOCK=""
 
   for cmd in "$@"; do
+    ENTRYPOINT_BLOCK=$(get_docker_entrypoint)
     COMMAND_BLOCK=$(get_docker_command "$cmd")
     ENVIRONMENT_BLOCK=$(get_environment_block "$cmd")
-    VOLUMES_BLOCK=$(get_volumes_block "$cmd")
+    VOLUMES_BLOCK=$(get_volumes_block "$ENTRYPOINT_BLOCK")
     COMMAND_BLOCKS+=$(
       cat <<EOF
 
@@ -211,11 +243,12 @@ EOF
 
 ${INDENT}      propagate-uid-gid: ${PROPAGATE_UID_GID}
 EOF
-    )
+      )
     fi
     COMMAND_BLOCKS+=$(
       cat <<EOF
       
+${ENTRYPOINT_BLOCK:-}
 ${ENVIRONMENT_BLOCK:-}
 ${COMMAND_BLOCK:-}
 ${VOLUMES_BLOCK:-}
