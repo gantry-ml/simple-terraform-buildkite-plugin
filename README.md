@@ -194,6 +194,10 @@ Use the [`propagate-aws-auth-tokens` flag for the Docker plugin](https://github.
 Use the [`propagate-environment` flag for the Docker plugin](https://github.com/buildkite-plugins/docker-buildkite-plugin#propagate-environment-optional-boolean)
 > Default: true
 
+### `pkgs` (optional, array of string)
+Additional OS packages to install in the Terraform container at runtime.
+> Default: null
+
 ### `queue` (optional, string)
 Tag the queue on the generated docker step
 > Default: null
